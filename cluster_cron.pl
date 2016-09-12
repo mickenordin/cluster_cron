@@ -16,8 +16,6 @@ if ($num_args < 2) {
 # We need a common directory for our nodes to write and read state from plus a couple of cronfiles
 my ($user, $shareddir, $mode, $spooldir)  = @ARGV;
 
-print "Mode: $mode, user: $user, shareddir: $shareddir and spooldir: $spooldir\n";
-
 # Set some defaults if we didn't get them
 unless ($mode == 0) {
 	# mode 0 = active/passive, mode 1 = active/active
@@ -40,6 +38,7 @@ my $time = time;
 
 
 print "Host: $hostname started run at: $time\n";
+print "Mode: $mode, user: $user, shareddir: $shareddir and spooldir: $spooldir\n";
 
 # Create directories 
 unless (-d $sharedcrondir) {
@@ -148,7 +147,7 @@ sub comment_out {
 # Remove a # from any crontab entry
 sub uncomment {
         my ($infile, $outfile) = @_;
-	print "Unommenting, infile is $infile and outfile is $outfile\n";
+	print "Uncommenting, infile is $infile and outfile is $outfile\n";
         open(INFILE,"<$infile");
         my $content = '';
         while(my $line = <INFILE>) {
