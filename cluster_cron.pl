@@ -7,24 +7,22 @@ use File::Compare;
 use File::Copy;
 use File::Temp;
 
+my $num_args = $#ARGV + 1;
+if ($num_args < 2) {
+    print "\nUsage: $0 <user> <shared directory> [mode (0 for active/passive or 1 for active/active)] [cron spool directory]\n";
+    exit;
+}
+
 # We need a common directory for our nodes to write and read state from plus a couple of cronfiles
-my $mode = $ARGV[0];
-my $user = $ARGV[1];
-my $shareddir = $ARGV[2];
-my $spooldir = $ARGV[3];
+my ($user, $shareddir, $mode, $spooldir)  = @ARGV;
 
 print "Mode: $mode, user: $user, shareddir: $shareddir and spooldir: $spooldir\n";
+
 # Set some defaults if we didn't get them
 unless ($mode == 0) {
 	# mode 0 = active/passive, mode 1 = active/active
 	print "Mode not set on command line, going to active/active\n";
 	$mode = 1;
-}
-unless ($user) {
-	$user = "www-data";
-}
-unless ($shareddir) {
-	$shareddir = "/var/lib/thruk";
 }
 unless ($spooldir) { 
 	$spooldir = "/var/spool/cron/crontabs";
