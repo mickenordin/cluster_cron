@@ -34,11 +34,8 @@ my $oldactivesharedcronfile = "$sharedcrondir/$user.old";
 my $oldpassivesharedcronfile = "$sharedcrondir/$user.passive.old";
 my $electiondir = "$sharedcrondir/election";
 my $hostname = hostname;
-my $time = time;
+my $failovertimeout = 40;
 
-
-print "Host: $hostname started run at: $time\n";
-print "Mode: $mode, user: $user, shareddir: $shareddir and spooldir: $spooldir\n";
 
 # Create directories 
 unless (-d $sharedcrondir) {
@@ -78,6 +75,7 @@ sub get_nodes {
 
 # Simply write a unix timestamp to a file with our name on it
 sub write_timestamp {
+	my $time = time;
 	open(FILE,"+>$electiondir/$hostname");
 	print FILE $time;
 	close FILE;
@@ -94,9 +92,9 @@ sub is_active {
 	# Loop all nodes
 	foreach my $node (@nodes) {
 		#  If it has been active in the last 120 seconds it is eligable
-		my $diff = $time - $node->{'time'};
-		if( $diff < 120 ) {
-			print "Node: $node->{'name'} was active last 120 sec\n";
+		my $diff = time - $node->{'time'};
+		if( $diff < $failovertimeout ) {
+			print "Node: $node->{'name'} was active last $failovertimeout sec\n";
 			# Go to passive mode if the numeric of that host is less than that of this host
 			my $this = get_numeric($hostname);
 			my $that = $node->{'numeric'};
@@ -129,11 +127,10 @@ sub get_numeric {
 # But a # infront of any actime crontab entry 
 sub comment_out {
 	my ($infile, $outfile) = @_;
-	print "Commenting out, infile is $infile and outfile is $outfile\n";
 	open(INFILE,"<$infile");
 	my $content = '';
 	while(my $line = <INFILE>) {
-		$line =~ s/(^(?!#))/#$1/g;
+		$line =~ s/(^(?!#))/# $1/g;
 		$content .= $line;
 	}
 	
@@ -147,11 +144,10 @@ sub comment_out {
 # Remove a # from any crontab entry
 sub uncomment {
         my ($infile, $outfile) = @_;
-	print "Uncommenting, infile is $infile and outfile is $outfile\n";
         open(INFILE,"<$infile");
         my $content = '';
         while(my $line = <INFILE>) {
-                $line =~ s/^(#\s?)([\d*])/$2/g;
+                $line =~ s/^(#\s?)([\d*])/ $2/g;
                 $content .= $line;
         }
 
@@ -164,8 +160,6 @@ sub uncomment {
 
 sub cron_compare {
 	my ($one, $two, $three) = @_;
-
-	print "Comparing files\n";
 
         # Current cronfile and shared cronfile is not same
         if(compare($one, $two) != 0) {
@@ -189,67 +183,86 @@ sub cron_compare {
 
 }
 
-# If we are running in active/passive mode
-if($mode == 0) {
-	unless (-d $electiondir) {
-		mkdir $electiondir;
-	}
-	my $tempfile = tmpnam();
+sub run {
+	print "Host: $hostname started run at: " . time . "\n";
+	print "Mode: $mode, user: $user, shareddir: $shareddir and spooldir: $spooldir\n";
 
-	# Update timestamp
-	write_timestamp;
 
-	# See if I am the one
-	if (is_active(get_nodes) ){
-		my $compare = cron_compare($cronfile, $activesharedcronfile, $oldactivesharedcronfile );
-		# The other node has changed the file
-		if($compare == 1) {
-			copy($activesharedcronfile, $cronfile);
-			copy($activesharedcronfile, $oldactivesharedcronfile);
-		# This node has changed the file 
-		} elsif ($compare == 2) {
-			copy($cronfile, $activesharedcronfile);
+	# If we are running in active/passive mode
+	if($mode == 0) {
+		unless (-d $electiondir) {
+			mkdir $electiondir;
+		}
+		my $tempfile = tmpnam();
+
+		# Update timestamp
+		write_timestamp;
+
+		# See if I am the one
+		if (is_active(get_nodes) ){
+			my $compare = cron_compare($cronfile, $activesharedcronfile, $oldactivesharedcronfile );
+			# The other node has changed the file
+			if($compare == 1) {
+				copy($activesharedcronfile, $cronfile);
+				copy($activesharedcronfile, $oldactivesharedcronfile);
+			# This node has changed the file 
+			} elsif ($compare == 2) {
+				copy($cronfile, $activesharedcronfile);
 			#comment_out($cronfile, $passivesharedcronfile);
+			}
+			comment_out($cronfile, $tempfile);
+			$compare = cron_compare($tempfile, $passivesharedcronfile, $oldpassivesharedcronfile);
+			# The other node has changed the file
+			if($compare == 1) {
+				uncomment($passivesharedcronfile, $cronfile);
+				copy($passivesharedcronfile, $oldpassivesharedcronfile);
+				copy($cronfile, $activesharedcronfile);
+				copy($activesharedcronfile, $oldactivesharedcronfile);
+			# This node has changed the file 
+			} elsif ($compare == 2) {
+				copy($cronfile, $activesharedcronfile);
+				comment_out($cronfile, $passivesharedcronfile);
+			}
+		# We are passive node
+		} else {
+			my $compare = cron_compare($cronfile, $passivesharedcronfile, $oldpassivesharedcronfile );
+			# The other node has changed the file
+			if($compare == 1) {
+				copy($passivesharedcronfile, $cronfile);
+				copy($passivesharedcronfile, $oldpassivesharedcronfile);
+			# We have changed stuff
+			} elsif ($compare == 2) {
+				comment_out($cronfile, $passivesharedcronfile);
+				copy($passivesharedcronfile, $cronfile);
+			}
 		}
-		comment_out($cronfile, $tempfile);
-		$compare = cron_compare($tempfile, $passivesharedcronfile, $oldpassivesharedcronfile);
-		# The other node has changed the file
-		if($compare == 1) {
-			uncomment($passivesharedcronfile, $cronfile);
-		} elsif ($compare == 2) {
-			copy($passivesharedcronfile, $oldpassivesharedcronfile);
-			comment_out($cronfile, $passivesharedcronfile);
-		}
-	# We are passive node
-	} else {
-		my $compare = cron_compare($cronfile, $passivesharedcronfile, $oldpassivesharedcronfile );
-		# The other node has changed the file
-		if($compare == 1) {
-			copy($passivesharedcronfile, $cronfile);
-		# We have changed stuff
-		} elsif ($compare == 2) {
-			copy($passivesharedcronfile, $oldpassivesharedcronfile);
-			comment_out($cronfile, $passivesharedcronfile);
-			copy($passivesharedcronfile, $cronfile);
-		}
+		unlink $tempfile;
 	}
-	unlink $tempfile;
+
+	# If we are running in active/active mode
+	else {
+			my $compare = cron_compare($cronfile, $activesharedcronfile, $oldactivesharedcronfile );
+			# The other node has changed the file
+			if($compare == 1) {
+				copy($activesharedcronfile, $oldactivesharedcronfile);
+				copy($activesharedcronfile, $cronfile);
+			# We have changed things
+			} elsif ($compare == 2) {
+				copy($cronfile, $activesharedcronfile);
+			}
+	}
+
+	print "Host: $hostname finished run at: " . time . "\n\n\n";
 }
 
-# If we are running in active/active mode
-else {
-		my $compare = cron_compare($cronfile, $activesharedcronfile, $oldactivesharedcronfile );
-		# The other node has changed the file
-		if($compare == 1) {
-			copy($activesharedcronfile, $cronfile);
-		# We have changed things
-		} elsif ($compare == 2) {
-			copy($activesharedcronfile, $oldactivesharedcronfile);
-			comment_out($cronfile, $activesharedcronfile);
-			copy($activesharedcronfile, $cronfile);
-		}
+for (my $i = 0; $i < 6; $i++) {
+	my $start = time;
+	$| = 1;
+	run;
+	if ((my $remaining = 10 - (time - $start)) > 0) {
+		sleep $remaining;
+	}
 }
-
 
 exit;
 
