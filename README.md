@@ -38,4 +38,4 @@ If you need som cronjobs to only run in one server and some cronjobs to run on a
 
 This setup should work on any number of nodes in theory, but it has only been tested on two nodes.
 
-The syncing of cronfiles between the nodes will only happen once every ten seconds which means that there is a race condition if the cron file is updated on multiple hosts at once. Please make sure that no one else is updating th cronfile on another node at the exact same time as you are.
+The syncing of cronfiles between the nodes will only happen once every ten seconds which means that there is a race condition if the cron file is updated on multiple hosts at once. Please make sure that no one else is updating the cronfile on another node at the exact same time as you are.
