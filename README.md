@@ -18,4 +18,6 @@ So as root:
 crontab -e
 
 add this line:
+```
 * * * * * /usr/local/bin/cluster_cron.pl cluster /mnt/shareddir 0 /var/spool/cron/crontabs  >> /mnt/shareddir/cluster.log 2>&1
+```
