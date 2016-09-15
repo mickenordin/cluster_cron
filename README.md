@@ -31,3 +31,9 @@ In mode 1 (active/active) the cron file will be the same on all servers and all 
 * * * * * /usr/local/bin/cluster_cron.pl passive /mnt/shareddir 0 /var/spool/cron/crontabs  >> /mnt/shareddir/cluster_passive.log 2>&1
 * * * * * /usr/local/bin/cluster_cron.pl active /mnt/shareddir 1 /var/spool/cron/crontabs  >> /mnt/shareddir/cluster_active.log 2>&1
 ```
+#
+# Caveates
+
+This setup should work on any number of nodes in theory, but it has only been tested on two nodes.
+
+The syncing of cronfiles between the nodes will only happen once every ten seconds which means that there is a race condition if the cron file is updated on multiple hosts at once. Please make sure that no one else is updating th cronfile on another node at the exact same time as you are.
