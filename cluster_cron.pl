@@ -79,7 +79,7 @@ sub get_nodes {
 # Simply write a unix timestamp to a file with our name on it
 sub write_timestamp {
 	my $time = time;
-	open(FILE,"+>$electiondir/$hostname");
+	open(FILE,"+>$electiondir/$hostname") or die "Could not open file: $!";
 	print FILE $time;
 	close FILE;
 
@@ -108,7 +108,7 @@ sub is_active {
 			} else {
 				print "I am active\n";
 				my $outfile = "$sharedcrondir/active";
-				open(OUTFILE,"+>$outfile");
+				open(OUTFILE,"+>$outfile") or die "Could not open file: $!";
 				print OUTFILE $hostname;
 				close OUTFILE;
 			}
@@ -142,7 +142,7 @@ sub comment_out {
 	}
 	
 	close INFILE;
-	open(OUTFILE,"+>$outfile");
+	open(OUTFILE,"+>$outfile") or die "Could not open file: $!";
 	print OUTFILE $content;
 	close OUTFILE;
 
@@ -159,7 +159,7 @@ sub uncomment {
         }
 
         close INFILE;
-        open(OUTFILE,"+>$outfile");
+        open(OUTFILE,"+>$outfile") or die "Could not open file: $!";
         print OUTFILE $content;
         close OUTFILE;
 
