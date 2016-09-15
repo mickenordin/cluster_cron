@@ -19,8 +19,11 @@ my ($user, $shareddir, $mode, $spooldir)  = @ARGV;
 # Set some defaults if we didn't get them
 unless ($mode == 0) {
 	# mode 0 = active/passive, mode 1 = active/active
-	print "Mode not set on command line, going to active/active\n";
+	print "Mode is active/active\n";
 	$mode = 1;
+} else {
+	print "Mode is active/passive\n";
+
 }
 unless ($spooldir) { 
 	$spooldir = "/var/spool/cron/crontabs";
