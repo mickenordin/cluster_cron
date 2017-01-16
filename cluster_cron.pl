@@ -154,7 +154,7 @@ sub uncomment {
         open(INFILE,"<$infile");
         my $content = '';
         while(my $line = <INFILE>) {
-                $line =~ s/^(#\s?)([\d*])/ $2/g;
+                $line =~ s/^#\s{1,4}([\d\*])/ $1/g;
                 $content .= $line;
         }
 
@@ -216,9 +216,18 @@ sub run {
 		# If we have an active shared cronfile, we should also have an old shared
 		# See if I am the one
 		if (is_active(get_nodes) ){
-			if(compare($cronfile, $passivesharedcronfile) == 0 and compare($cronfile, $activesharedcronfile) != 0) {
-				print "There has been a failover, switching to active cronfile\n";
-				copy($activesharedcronfile, $cronfile); 
+			if(compare($cronfile, $passivesharedcronfile) == 0 ) {
+				my $is_empty = 1;
+				open my $fh, '<:encoding(UTF-8)', $activesharedcronfile or die;
+				while (my $line = <$fh>) {
+					if ($line !~ m/^#/) {
+						$is_empty = 0;
+					}
+				}
+				unless($is_empty) {
+					print "There has been a failover, switching to active cronfile\n";
+					copy($activesharedcronfile, $cronfile);
+				}
 			}
 			my $tempfile = tmpnam();
 			my $compare = cron_compare($cronfile, $activesharedcronfile, $oldactivesharedcronfile );
