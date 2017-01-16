@@ -154,7 +154,7 @@ sub uncomment {
         open(INFILE,"<$infile");
         my $content = '';
         while(my $line = <INFILE>) {
-                $line =~ s/^#\s{1,4}([\d\*])/ $1/g;
+                $line =~ s/^#\s*([\d\*])/ $1/g;
                 $content .= $line;
         }
 
