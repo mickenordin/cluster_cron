@@ -216,7 +216,7 @@ sub run {
 		# If we have an active shared cronfile, we should also have an old shared
 		# See if I am the one
 		if (is_active(get_nodes) ){
-			if(compare($cronfile, $passivesharedcronfile)) == 0) {
+			if(compare($cronfile, $passivesharedcronfile) == 0) {
 				print "There has been a failover, switching to active cronfile\n";
 				copy($activesharedcronfile, $cronfile); 
 			}
