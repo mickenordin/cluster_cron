@@ -224,6 +224,7 @@ sub run {
 						$is_empty = 0;
 					}
 				}
+				close $fh;
 				unless($is_empty) {
 					print "There has been a failover, switching to active cronfile\n";
 					copy($activesharedcronfile, $cronfile);
