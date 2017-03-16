@@ -15,7 +15,7 @@ my $config_file = $ARGV[0];
 
 my $config      = Config::JSON->new($config_file) or die "Can not open config file: $config_file";
 
-my $crontab       = $config->get('crontabs');
+my $crontab       = $config->get('crontab');
 my $sharedcrontab = $config->get('sharedcrontab');
 my $masterfile    = $config->get('masterfile');
 
