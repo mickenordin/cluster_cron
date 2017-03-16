@@ -48,7 +48,8 @@ Install this script somwhere and make sure it is executable. In this example the
 /usr/local/bin/cron_failover.pl
 
 First create a config file, e.g /mnt/shareddir/crontabs/crontab_config.json:
-```{
+```
+{
    "db" : "icinga2",
    "host" : "db.example.com",
    "user" : "myuser",
