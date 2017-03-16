@@ -65,5 +65,5 @@ crontab -e
 
 add this line:
 ```
-* * * * * root /usr/local/bin/cron_failover.pl /mnt/shareddir/crontabs/crontab_config.json  >> /mnt/shareddir/crontab_$(hostname).log 2>&1
+* * * * * /usr/local/bin/cron_failover.pl /mnt/shareddir/crontabs/crontab_config.json  >> /mnt/shareddir/crontab_$(hostname).log 2>&1
 ```
