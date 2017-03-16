@@ -42,9 +42,9 @@ The syncing of cronfiles between the nodes will only happen once every ten secon
 
 
 # cron_failover
-This is a script designed to work with Icinga2 to detect which server is the current master and run only there. In order to use this you need a shared drive on all servers that is going to be part of the cluster such as afs, glusterfs, nfs or samba. In this example it is mounted on /mnt/shareddir/
+This is a script designed to work with Icinga2 to detect which server is the current master and run only there, you can only update the cronfile on the currently active node. In order to use this you need a shared drive on all servers that is going to be part of the cluster such as afs, glusterfs, nfs or samba. In this example it is mounted on /mnt/shareddir/
 
-Install this script somwhere and make sure it is executable. In this example the script will be put in:
+Install this script somewhere and make sure it is executable. In this example the script will be put in:
 /usr/local/bin/cron_failover.pl
 
 First create a config file, e.g /mnt/shareddir/crontabs/crontab_config.json:
