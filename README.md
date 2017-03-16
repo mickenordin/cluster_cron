@@ -39,3 +39,30 @@ If you need som cronjobs to only run in one server and some cronjobs to run on a
 This setup should work on any number of nodes in theory, but it has only been tested on two nodes.
 
 The syncing of cronfiles between the nodes will only happen once every ten seconds which means that there is a race condition if the cron file is updated on multiple hosts at once. Please make sure that no one else is updating the cronfile on another node at the exact same time as you are.
+
+
+# cron_failover
+This is a script designed to work with Icinga2 to detect which server is the current master and run only there. In order to use this you need a shared drive on all servers that is going to be part of the cluster such as afs, glusterfs, nfs or samba. In this example it is mounted on /mnt/shareddir/
+
+Install this script somwhere and make sure it is executable. In this example the script will be put in:
+/usr/local/bin/cron_failover.pl
+
+First create a config file, e.g /mnt/shareddir/crontabs/crontab_config.json:
+```{
+   "db" : "icinga2",
+   "host" : "db.example.com",
+   "user" : "myuser",
+   "password" : "secret",
+   "crontab" : "/var/spool/cron/crontabs/www-data",
+   "sharedcrontab" : "/mnt/shareddir/crontabs/www-data",
+   "masterfile" : "/mnt/shareddir/crontabs/active"
+}
+```
+
+Then as root:
+crontab -e
+
+add this line:
+```
+* * * * * root /usr/local/bin/cron_failover.pl /mnt/shareddir/crontabs/crontab_config.json  >> /mnt/shareddir/crontab_$(hostname).log 2>&1
+```
